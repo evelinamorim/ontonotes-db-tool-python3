@@ -177,7 +177,6 @@ except ImportError:
 import string
 import sys
 import re
-import exceptions
 import codecs
 
 #---- xml specific imports ----#
@@ -278,7 +277,7 @@ class on_sense(object):
         elif indexing == "token" or (indexing == "ntoken_vword" and pos == 'n') or (indexing == "nword_vtoken" and pos == 'v'):
             self.token_index = word_index
         else:
-            raise Exception("sense indexing must be 'word', 'token', 'ntoken_vword', or 'ntoken_vword'.  Given %s" % lemma_index)
+            raise Exception("sense indexing must be 'word', 'token', 'ntoken_vword', or 'ntoken_vword'.  Given %s" % lemma)
 
 
     def _get_word_index(self):
@@ -448,7 +447,7 @@ class on_sense(object):
                 self.leaf = a_tree.get_leaf_by_token_index(self.token_index)
             else:
                 raise KeyError("No index available")
-        except KeyError, e:
+        except KeyError as e:
             self.valid = False
 
     def __repr__(self):
@@ -1099,7 +1098,7 @@ class sense_inventory:
         #---- create a DOM object for the xml string ----#
         try:
             a_inventory_tree = ElementTree.fromstring(a_xml_string)
-        except Exception, e:
+        except Exception as e:
             drop("problem reading sense inventory xml file", ["error", e])
 
         a_lemma_attribute = on.common.util.make_sgml_unsafe(on.common.util.get_attribute(a_inventory_tree, "lemma"))
@@ -1597,7 +1596,7 @@ class sense_bank(abstract_bank):
                     sense_inv_hash[a_lemma_pos] = on.corpora.sense.sense_inventory(
                         sense_inv_fname, sense_inv_file_str, lang_id, a_frame_set_hash)
 
-            except Exception, e:
+            except Exception as e:
                 on.common.log.report("senseinv", "sense inventory failed to load", fname=sense_inv_fname)
 
         sys.stderr.write("\n")
@@ -1786,7 +1785,7 @@ insert into sense_bank
                 try:
                     sys.stderr.write("... writing sense inventory %s [%s] \n" % (a_sense_inventory.lemma, a_sense_inventory.file_name))
                     a_sense_inventory.write_to_db(a_cursor)
-                except AttributeError, e:
+                except AttributeError as e:
                     on.common.log.report("sense", "Failed to write sense inventory to db", "si: %s [%s]" % (a_sense_inventory, a_sense_inventory.file_name))
             sys.stderr.write("\n")
 

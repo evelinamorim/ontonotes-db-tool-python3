@@ -60,7 +60,7 @@ def apf_to_callisto(fname_apf, fname_source, out_xml=None, munge_primary_mention
 
     try:
         et = ElementTree.parse(fname_apf)
-    except Exception, e:
+    except Exception as e:
         raise InvalidApfException(fname_apf, "not valid xml: %s" % (e.args, ))
 
     if type(fname_source) == type(""):
@@ -435,8 +435,8 @@ def callisto_to_apf(fname, out_apf=None, out_source=None):
             region = ace_entity_mentions[a_annotation]["region"]
             region = fulls.get(region, region)
             if region not in text_extents:
-                print "  ".join(sorted(text_extents.keys()))
-                print region
+                print("  ".join(sorted(text_extents.keys())))
+                print(region)
             start_anchor, end_anchor = text_extents[region]
             start_char, end_char = anchors[start_anchor], anchors[end_anchor]
             charseq = '          <charseq START="%s" END="%s">%s</charseq>\n' % (
@@ -450,7 +450,7 @@ def callisto_to_apf(fname, out_apf=None, out_source=None):
                 w('        </head>\n')
                 w('      </entity_mention>\n')
             except UnicodeEncodeError:
-                print "%r" % charseq
+                print("%r" % charseq)
                 raise
 
         w('    </entity>\n')
@@ -548,7 +548,7 @@ def parse_callisto_xml(fname, stop_at_mentions=False):
         try:
             ref = e.attrib["{%s}href" % PREPEND_B]
         except Exception:
-            print e, e.attrib
+            print(e, e.attrib)
             raise
 
         if ref.startswith("#"):
@@ -594,11 +594,11 @@ def parse_callisto_xml(fname, stop_at_mentions=False):
     try:
         source_text_raw = get_source_text(simple_signal).decode("utf8")
     except UnicodeDecodeError:
-        print "-"*70
-        print "Raw source text:"
-        print "----------------"
-        print "%r"% list(enumerate(get_source_text(simple_signal)))
-        print "-"*70
+        print("-"*70)
+        print("Raw source text:")
+        print("----------------")
+        print("%r"% list(enumerate(get_source_text(simple_signal))))
+        print("-"*70)
         raise
 
 
@@ -848,7 +848,7 @@ def callisto_to_sgml(fname, out_sgml=None, buckit=False, language="unknown", wra
 
         try:
             n_text, num_fixed = desubtokenize_annotations(n_text, add_offset_notations=True)
-        except Exception, e:
+        except Exception as e:
             raise DeSubtokenizationFailedException(fname, e)
 
         if buckit:

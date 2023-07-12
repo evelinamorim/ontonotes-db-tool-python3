@@ -78,7 +78,7 @@ import os.path
 import string
 import sys
 import re
-import exceptions
+
 import math
 import os
 import time
@@ -86,7 +86,6 @@ import getopt
 import zlib
 import gzip
 import codecs
-import commands
 import traceback
 import weakref
 
@@ -399,7 +398,7 @@ class ontonotes:
         if not (a_db, a_host, a_user) in connections:
             try:
                 connections[a_db, a_host, a_user] = MySQLdb.connect(host=a_host, db=a_db, user=a_user, charset="utf8")
-            except MySQLdb.Error, e:
+            except MySQLdb.Error as e:
                 on.common.log.error("%s\n%s%s\n%s%s" % (
                     "cannot connect to database server.",
                     "error code    : ", str(e.args[0]),
@@ -527,7 +526,7 @@ insert into ontonotes
                 try:
                     cursor.execute(thing.sql_create_statement)
                 except Exception:
-                    print thing.sql_create_statement
+                    print(thing.sql_create_statement)
                     raise
 
                 table_names.append(thing.sql_table_name)
@@ -547,7 +546,7 @@ insert into ontonotes
             try:
                 cursor.execute(sql_create_stmt)
             except Exception:
-                print table_name
+                print(table_name)
                 raise
 
             table_names.append(table_name)
@@ -593,26 +592,26 @@ insert into ontonotes
     #  @param cursor The database cursor to be used for processing
     #
     def dump_db_table(self, cursor):
-        print "\n"*5
-        print "-"*80
-        print " "*5, "description and contents of the ontonotes table", " "*30
-        print "-"*80
+        print("\n"*5)
+        print("-"*80)
+        print(" "*5, "description and contents of the ontonotes table", " "*30)
+        print("-"*80)
         #---- just check if the table was created ----#
         cursor.execute("""show tables;""")
-        print cursor.fetchall()
+        print(cursor.fetchall())
 
         #---- and print its description ----#
         cursor.execute("""describe ontonotes;""")
-        print cursor.fetchall()
+        print(cursor.fetchall())
 
         #---- and print its contents ----#
         cursor.execute("""select * from ontonotes;""")
         rows = cursor.fetchall()
 
         for row in rows:
-            print "id: %s" % (row["id"])
-            print "."*40
-        print "number of rows returned: %s" % (cursor.rowcount)
+            print("id: %s" % (row["id"]))
+            print("."*40)
+        print("number of rows returned: %s" % (cursor.rowcount))
 
 
     def _from_db(self):

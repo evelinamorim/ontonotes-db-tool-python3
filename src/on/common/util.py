@@ -183,15 +183,17 @@ import bz2
 import base64
 import codecs
 import xml.dom.minidom
-import ConfigParser
+import configparser
 from optparse import OptionParser
 from collections import defaultdict
 import tempfile
-import commands
+#import commands
+import subprocess
 import xml.etree.ElementTree as ElementTree
 import difflib
 import inspect
-import htmlentitydefs
+#import htmlentitydefs
+import html.entities
 
 #---- specific imports ----#
 import on.common.log
@@ -325,7 +327,7 @@ uni2buck = {}
 
 
 # Iterate through all the items in the buck2uni dict.
-for (key, value) in buck2uni.iteritems():
+for (key, value) in buck2uni.items():
     # The value from buck2uni becomes a key in uni2buck, and vice
     # versa for the keys.
     uni2buck[value] = key
@@ -620,7 +622,7 @@ def doc_id2corpus_id(a_doc_id):
 def get_max(a_list):
     """ The maximum value in a list of int strings """
     def compare(a, b):
-        return cmp(int(a), int(b))
+        return int(a) - int(b)
 
     a_list.sort(compare)
 
@@ -712,8 +714,8 @@ def validate_file_for_utf_8(path):
     try:
         for line in open(path, "r").readlines():
             n += 1
-            unicode(line, "utf-8")
-    except UnicodeDecodeError, e:
+            str(line, "utf-8")
+    except UnicodeDecodeError as e:
         sys.stderr.write("%s, line %d: %s\n" % (path, n, e))
         pass
 
@@ -862,7 +864,7 @@ def desubtokenize_annotations(a_string, add_offset_notations=False, delete_annot
 
     if token_stack:
         for y in [x for x in new_tokens if x.strip()][-10:]:
-            print y
+            print(y)
     assert not token_stack, token_stack
 
     def table_sorter(a, b):
@@ -870,10 +872,10 @@ def desubtokenize_annotations(a_string, add_offset_notations=False, delete_annot
         (b_o_tag, b_o_t_idx, b_o_s_off), (b_c_tag, b_c_t_idx, b_c_s_off) = b
 
         if a_o_t_idx != b_o_t_idx:
-            return cmp(b_o_t_idx, a_o_t_idx) # if one start on a later token, do it first
+            return b_o_t_idx - a_o_t_idx # if one start on a later token, do it first
         if a_c_t_idx != b_c_t_idx:
-            return cmp(a_c_t_idx, b_c_t_idx) # if one ends on an earlier token, do it first
-        return cmp(a_c_s_off, b_c_s_off)     # if one ends on an eralier character, do it first
+            return a_c_t_idx - b_c_t_idx # if one ends on an earlier token, do it first
+        return a_c_s_off - b_c_s_off     # if one ends on an eralier character, do it first
 
     token_table.sort(cmp=table_sorter)
 
@@ -894,8 +896,8 @@ def desubtokenize_annotations(a_string, add_offset_notations=False, delete_annot
         try:
             c_e_off = len(new_tokens[c_t_idx]) - c_s_off
         except IndexError:
-            print list(enumerate(new_tokens))
-            print c_tag, c_t_idx, c_s_off
+            print(list(enumerate(new_tokens)))
+            print(c_tag, c_t_idx, c_s_off)
             raise
         converted_token_table.append(((o_tag, o_t_idx, o_s_off), (c_tag, c_t_idx, c_e_off)))
 
@@ -938,7 +940,7 @@ def apf2muc(in_file_name, out_file_name, source_file_name, new, chinese,
     s_file.close()
 
     # Strip the BOM from the beginning of the Unicode string, if it exists
-    s_file_string = s_file_string.lstrip(unicode(codecs.BOM_UTF8, "utf8"))
+    s_file_string = s_file_string.lstrip(str(codecs.BOM_UTF8, "utf8"))
 
     doc_id_re = re.compile("<DOCID>(.*?)</DOCID>")
     date_re = re.compile("<DATE>(.*?)</DATE>")
@@ -1109,10 +1111,10 @@ def apf2muc(in_file_name, out_file_name, source_file_name, new, chinese,
         if(o_file_name == None or BN == True):
 
             if(o_file_name == None):
-                print "<DOC>"
-                print "<DOCNO>%s</DOCNO>" % (re.sub(".sgm.fid.utf8", "", doc_id))
-                print coref_doc_string
-                print "</DOC>"
+                print("<DOC>")
+                print("<DOCNO>%s</DOCNO>" % (re.sub(".sgm.fid.utf8", "", doc_id)))
+                print(coref_doc_string)
+                print("</DOC>")
             else:
                 o_file.write("<DOC>\n")
                 o_file.write("<DOCNO>%s</DOCNO>\n" % (re.sub(".sgm.fid.utf8", "", doc_id)))
@@ -1320,7 +1322,7 @@ class FancyConfigParserError(Exception):
                            'Given something more like "config[%s]".' % (", ".join("%r"%v for v in vals)))
 
 
-class FancyConfigParser(ConfigParser.SafeConfigParser):
+class FancyConfigParser(configparser.SafeConfigParser):
     """ make a config parser with support for config[section, value]
 
     raises :class:`FancyConfigParserError` on improper usage.
@@ -1640,7 +1642,7 @@ def listdir_both(dirname):
     return [(d, os.path.join(dirname, d)) for d in listdir(dirname)]
 
 # documentation for this is in common/__init__.rst
-NotInConfigError = ConfigParser.NoOptionError
+NotInConfigError = configparser.NoOptionError
 
 
 def sopen(filename, mode="r"):
@@ -1851,7 +1853,6 @@ def insert_ignoring_dups(inserter, a_cursor, *values):
       insert_ignoring_dups(self.__class__.weirdly_named_sql_insert_statement, a_cursor, id, tag)
 
     """
-
     import MySQLdb
 
 
@@ -1864,7 +1865,7 @@ def insert_ignoring_dups(inserter, a_cursor, *values):
 
     try:
         a_cursor.executemany("%s" % insert_statement, [esc(*values)])
-    except MySQLdb.Error, e:
+    except MySQLdb.connector.Error as e:
         if(str(e.args[0]) != "1062"):
             on.common.log.error("{%s, %s} %s %s" % (insert_statement, values, str(e.args[0]), str(e.args[1])))
 
@@ -1980,7 +1981,7 @@ def diff_align(seq_a, seq_b, map_differences=False, use_difflib=False):
             v.file.write(v.diff_input)
             v.file.flush()
 
-        status, output = commands.getstatusoutput("diff -y --expand-tabs %s %s" % (a.file.name, b.file.name))
+        status, output = subprocess.run(["diff","-y", "--expand-tabs %s %s" % (a.file.name, b.file.name)])
 
         for v in [a, b]:
             v.file.close()
@@ -2023,7 +2024,7 @@ def diff_align(seq_a, seq_b, map_differences=False, use_difflib=False):
                     bad = True
 
                 if bad:
-                    print a_diff_line
+                    print(a_diff_line)
                     raise Exception("major diff align badness")
 
 
@@ -2131,7 +2132,7 @@ def parse_sexpr(s):
                 if parens == 0:
                     try:
                         x = parse_sexpr("".join(cur))
-                    except InvalidSexprException, e:
+                    except InvalidSexprException as e:
                         raise InvalidSexprException("Parent: %s" % s, e)
 
                     if x:
@@ -2209,11 +2210,11 @@ class timer:
         self.list_of_deltas.append(delta)
 
     def end(self):
-        print "timer statistics for '%s':" % (self.name)
-        print "     total time: %s"  % (self.total_time)
+        print("timer statistics for '%s':" % (self.name))
+        print("     total time: %s"  % (self.total_time))
         number_of_deltas = len(self.list_of_deltas)
-        print "number of calls: %s" % (number_of_deltas)
-        print "  average delta: %s" % (self.total_time/number_of_deltas)
+        print("number of calls: %s" % (number_of_deltas))
+        print("  average delta: %s" % (self.total_time/number_of_deltas))
 
 
 def score_b_cubed(k, r):
@@ -2816,7 +2817,7 @@ def fullwidth(ascii_chars, robust=False):
                 return ascii_char
             else:
                 raise CharacterRangeException("Input char not in plain text range: %s" % (ord(ascii_char)))
-        return unichr(ord(u'\uff01')-ord('!')+ord(ascii_char))
+        return chr(ord(u'\uff01')-ord('!')+ord(ascii_char))
 
     return "".join(fw(ascii_char) for ascii_char in ascii_chars)
 
@@ -2975,8 +2976,8 @@ def pretty_print_table(rows, separator=None, out_file=None):
 
     if(out_file == None):
         for row in r_c_matrix:
-            print " ".join(row).strip()
-        print
+            print( " ".join(row).strip())
+        print()
     else:
         for row in r_c_matrix:
             out_file.write("%s\n" % (" ".join(row).strip()))
@@ -3014,8 +3015,8 @@ def remove_punctuation(gi,ci,go,co):
             x.tokens=x.line.split()
 
             if on.common.log.DEBUG:
-                print x.line
-                print x.tokens
+                print(x.line)
+                print(x.tokens)
 
 
             x.l=len(x.tokens)
@@ -3041,7 +3042,7 @@ def remove_punctuation(gi,ci,go,co):
                 c.i < c.l):
 
                 if on.common.log.DEBUG:
-                    print g.tokens[g.i], c.tokens[c.i]
+                    print(g.tokens[g.i], c.tokens[c.i])
 
 
                 if(g.tokens[g.i].split("_")[0] not in [":", ",", "``", "''", ".", "-LRB-", "-RRB-"]):
@@ -3097,7 +3098,7 @@ def convert_html_entities(s):
               name = hit[2:-1]
               try:
                       entnum = int(name)
-                      s = s.replace(hit, unichr(entnum))
+                      s = s.replace(hit, chr(entnum))
               except ValueError:
                       pass
 
@@ -3108,8 +3109,8 @@ def convert_html_entities(s):
       hits.remove(amp)
   for hit in hits:
       name = hit[1:-1]
-      if htmlentitydefs.name2codepoint.has_key(name):
-              s = s.replace(hit, unichr(htmlentitydefs.name2codepoint[name]))
+      if html.entities.name2codepoint.has_key(name):
+              s = s.replace(hit, html.entities.name2codepoint[name])
   s = s.replace(amp, "&")
   return s
 
@@ -3127,7 +3128,7 @@ def two_int_tuple_compare(tuple_1, tuple_2):
     if( float(tuple_1[0]) < float(tuple_2[0]) ):
         return -1
     elif( float(tuple_1[0]) == float(tuple_2[0]) ):
-        return cmp(float(tuple_1[1]), float(tuple_2[1]))
+        return float(tuple_1[1]) - float(tuple_2[1])
     else:
         return 1
     

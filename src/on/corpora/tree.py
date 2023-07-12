@@ -103,9 +103,8 @@ except ImportError:
 import string
 import sys
 import re
-import exceptions
+
 import codecs
-import commands
 import tempfile
 import itertools
 
@@ -1763,8 +1762,10 @@ class tree(object):
                 return 0
             return -1 # this means nonleaf_a < nonleaf_b   *and*   nonleaf_b < nonleaf_a.  oh well.
 
-        return cmp((self.get_sentence_index(), self.get_token_index()),
-                   (other.get_sentence_index(), other.get_token_index()))
+        if self.get_sentence_index() == other.get_sentence_index():
+            return self.get_token_index() - other.get_token_index()
+        else:
+            return self.get_sentence_index() - other.get_sentence_index()
 
 
     @property
@@ -1858,9 +1859,9 @@ class tree(object):
             node_start_match = cls.NODE_START_MATCHER.match(syntactic_parse)
             result = tree(node_start_match.group(1),document_tag=document_tag)  # create a tree with the required non-terminal tag, and a default word value of None, since none is specified here
         except Exception:
-            print syntactic_parse
-            print len(syntactic_parse)
-            print tree.pretty_print_tree_string(syntactic_parse)
+            print(syntactic_parse)
+            print(len(syntactic_parse))
+            print(tree.pretty_print_tree_string(syntactic_parse))
             raise
 
         result.start = word_count
@@ -1871,7 +1872,7 @@ class tree(object):
             try:
                 child, remainder, word_count = cls.from_string_helper(remainder, word_count)
             except Exception:
-                print "\nparent:", syntactic_parse
+                print("\nparent:", syntactic_parse)
                 raise
             child.parent = result
             result.children.append(child)
@@ -2716,7 +2717,7 @@ class tree(object):
                         del a_subtree.children[i]
 
                         if(len(a_subtree.children) == 0):
-                            print "came here"
+                            print("came here")
                             a_subtree.marked_for_deletion = True
 
                             need_to_delete_some_node = True
@@ -2731,7 +2732,7 @@ class tree(object):
                 i=0
                 while(i<len(a_subtree.children)):
                     if(a_subtree.children[i].marked_for_deletion == True):
-                        print "marked for deletion:", a_subtree.children[i]
+                        print("marked for deletion:", a_subtree.children[i])
                         del a_subtree.children[i]
                     else:
                         i=i+1
@@ -3602,11 +3603,11 @@ class tree(object):
         maxindent=300
 
         # Table of indentation at tree depth
-        depth_to_indent = [0 for i in xrange(maxdepth)]
+        depth_to_indent = [0 for i in range(maxdepth)]
 
         # Initialize indent_string[i] to be a string of i spaces
-        indent_string = ['' for i in xrange(maxindent)]
-        for i in xrange(maxindent-1):
+        indent_string = ['' for i in range(maxindent)]
+        for i in range(maxindent-1):
             indent_string[i+1] = indent_string[i] + ' '
 
         # RE object for split that matches on a ')' followed by not a ')', but only consumes the ')'
@@ -4106,7 +4107,7 @@ class tree_document:
                     try:
                         a_sentence_from_leaves = strip_traces(" ".join(a_leaf.word for a_leaf in a_tree))
                     except Exception:
-                        print parse_list[i]
+                        print(parse_list[i])
                         raise
 
                     a_sentence_from_flat_parse = strip_traces(on.common.util.parse2word(parse_list[i]))
@@ -4139,7 +4140,7 @@ class tree_document:
                     try:
                         a_tree.check_subtrees_fix_quotes()
                     except Exception:
-                        print parse_list[i]
+                        print(parse_list[i])
                         raise
 
                     # lets process the syntactic links
@@ -4158,7 +4159,7 @@ class tree_document:
                                         try:
                                             lemma_lemma, coarse_sense = lemma_lemma.split("_")
                                         except ValueError:
-                                            print lemma_lemma
+                                            print(lemma_lemma)
                                             raise
 
                                     a_leaf.lemma_object = lemma(list_of_input_strings[document_word_index],
@@ -4188,7 +4189,7 @@ class tree_document:
 
                     self.tree_hash[tree_id] = a_tree
                     self.tree_ids.append(tree_id)
-                except Exception, e:
+                except Exception as e:
                     #on.common.log.report("treebank", "SOME PROBLEM WITH THE PARSE",
                     #                     "tree_id: %s\n" % (tree_id) + str(e))
                     raise

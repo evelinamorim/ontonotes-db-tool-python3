@@ -166,7 +166,7 @@ except ImportError:
 import string
 import sys
 import re
-import exceptions
+
 import codecs
 import copy
 import traceback
@@ -1804,7 +1804,7 @@ class argument_analogue(abstract_analogue):
             if type(argument_sub_list) != type([]):
                 print >>sys.stderr, self.enc_self
                 print >>sys.stderr, argument_sub_list
-                raise Exeption("err")
+                raise Exception("err")
 
             for a_subtree in argument_sub_list:
                 is_c = not subtree_equal(a_subtree, core_subtree)
@@ -2252,7 +2252,7 @@ class proposition(object):
 
                 try:
                     a_argument_analogue = argument_analogue(enc_argument_analogue, self)
-                except BadArgumentTypeException, bate:
+                except BadArgumentTypeException as bate:
                     return reject("badargtype",
                                   "bad argument type: %s" % bate,
                                   "argument: %s" % enc_argument_analogue)
@@ -2464,7 +2464,7 @@ class proposition(object):
 
 
         def node_compare(node_one, node_two):
-            return cmp(int(node_one.split(":")[0]), int(node_two.split(":")[0]))
+            return int(node_one.split(":")[0]) - int(node_two.split(":")[0])
 
 
         def unique_reorder_enc_arg(enc_arg):
@@ -3353,12 +3353,12 @@ class proposition_bank(abstract_bank):
 
                 try:
                     frame_set_file_string = frame_set_file.read()
-                except UnicodeDecodeError, e:
+                except UnicodeDecodeError as e:
                     continue
 
                 try:
                     a_lemma = re.findall("<id>\s+(.*?)\s+</id>", frame_set_file_string)[0]
-                except Exception, e:
+                except Exception as e:
                     continue
             else:
                 on.common.log.error("please change this code to address the new langauge (given %s)" % language_id, False)
@@ -3385,7 +3385,7 @@ class proposition_bank(abstract_bank):
                         a_frame_set.lemma = a_lemma
 
                     frame_set_hash[lemma_pos] = a_frame_set
-                except Exception, e:
+                except Exception as e:
                     on.common.log.report("prop", "found some problem processing frame file", fname=frame_set_file_name)
 
         sys.stderr.write("\n")
@@ -3621,7 +3621,7 @@ class proposition_bank(abstract_bank):
                 try:
                     a_proposition.enrich_tree(a_tree)
                 except Exception:
-                    print old_enc_prop
+                    print(old_enc_prop)
                     raise
 
                 self.check_proposition(a_proposition, ignore_errors=ignore_errors)

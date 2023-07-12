@@ -572,7 +572,7 @@ class parallel_bank(abstract_bank):
         to_bank = self.__class__(from_translation_treebank.subcorpus, to_translation_treebank.tag,
                                  a_cursor="please don't load from files")
 
-        status("Copying %s:%s (orig:%s) onto %s:%s (orig:%s) trees..." % (
+        on.common.log.status("Copying %s:%s (orig:%s) onto %s:%s (orig:%s) trees..." % (
             self.extension, from_translation_treebank.extension, to_bank.extension, to_translation_treebank.extension,
             from_original_treebank.extension, to_original_treebank.extension))
 

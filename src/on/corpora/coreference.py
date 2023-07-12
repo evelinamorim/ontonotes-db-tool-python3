@@ -123,7 +123,6 @@ except ImportError:
 import string
 import sys
 import re
-import exceptions
 import codecs
 
 
@@ -444,7 +443,7 @@ default character set utf8;
 
         try:
             cursor.executemany("%s" % (self.__class__.sql_insert_statement), data)
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             on.common.log.report("coreference", "error writing coreference link to database",
                                  link=self, error=e )
 
@@ -686,7 +685,7 @@ class coreference_document:
                 try:
                     enc_doc_string, _ = on.common.util.desubtokenize_annotations(enc_doc_string, add_offset_notations=True)
                 except Exception:
-                    print enc_doc_string
+                    print(enc_doc_string)
                     raise
 
                 #print enc_doc_string
@@ -1197,8 +1196,9 @@ class coreference_document:
             raise Exception("Coreference documents may be dumped only from the database or after enrichment")
 
 
-        def coref_link_sorter( (link_a, id_a), (link_b, id_b) ):
-
+        def coref_link_sorter(input_a , input_b):
+            (link_a, id_a) = input_a
+            (link_b, id_b) = input_b
             # all smallest first
             #   sort first by sentence
             #   then by start token index
@@ -1207,7 +1207,7 @@ class coreference_document:
             for compare in ['sentence_index', 'start_token_index', 'end_token_index']:
                 a_compare = int(getattr(link_a, compare))
                 b_compare = int(getattr(link_b, compare))
-                d = cmp(a_compare, b_compare)
+                d = a_compare - b_compare
                 if d != 0:
                     return d
             return 0
@@ -1528,9 +1528,9 @@ class coreference_bank(abstract_bank):
 
             if len(a_coreference_document.sentence_tokens_list) != len(a_tree_document):
                 for i, line in enumerate(a_coreference_document.sentence_tokens_list):
-                    print "C", i, " ".join(line)[:25]
+                    print("C", i, " ".join(line)[:25])
                 for i, a_tree in enumerate(a_tree_document):
-                    print "P", i, a_tree.get_word_string()[:25]
+                    print("P", i, a_tree.get_word_string()[:25])
 
                 on.common.log.report("coreference", "bad coref document SERIOUS",
                                      coref_sentences=len(a_coreference_document.sentence_tokens_list),

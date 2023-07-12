@@ -94,9 +94,8 @@ except ImportError:
 import string
 import sys
 import re
-import exceptions
 import getopt
-import UserDict
+from collections import UserDict
 
 
 #---- xml specific imports ----#
@@ -426,7 +425,7 @@ class abstract_bank(object):
 
 
 
-class subcorpus(UserDict.DictMixin):
+class subcorpus(dict):
     """A subcorpus represents an arbitrary collection of documents.
 
     Initializing
